@@ -1,60 +1,14 @@
-package main
+>Block Chain Technology and Its Application,Lab 1
+>
+>郭耸霄 PB20111712
 
-import (
-	"crypto/sha256"
-	"encoding/binary"
-	"fmt"
-	"github.com/ethereum/go-ethereum/crypto"
-	"math/big"
+[TOC]
 
-	"github.com/ethereum/go-ethereum/crypto/secp256k1"
-)
+# 实验一 密码学算法编写
 
-var (
-	s256    = secp256k1.S256()
-	P, _    = new(big.Int).SetString("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F", 0)
-	N, _    = new(big.Int).SetString("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 0)
-	B, _    = new(big.Int).SetString("0x0000000000000000000000000000000000000000000000000000000000000007", 0)
-	Gx, _   = new(big.Int).SetString("0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798", 0)
-	Gy, _   = new(big.Int).SetString("0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8", 0)
-	BitSize = 256
-	G       = &Point{Gx, Gy}
-)
+## 实现部分
 
-type Point struct {
-	X *big.Int
-	Y *big.Int
-}
-
-type Signature struct {
-	s *big.Int
-	r *big.Int
-}
-
-type ECC interface {
-	Sign(msg []byte, secKey *big.Int) (*Signature, error)
-	VerifySignature(msg []byte, signature *Signature, pubkey *Point) bool
-}
-
-type MyECC struct {
-}
-
-func NewPrivateKey() (*big.Int, error) {
-	k, err := newRand()
-	if err != nil {
-		return nil, err
-	}
-	if err := checkBigIntSize(k); err != nil {
-		return nil, fmt.Errorf("k error: %s", err)
-	}
-
-	return k, nil
-}
-
-func GeneratePublicKey(secKey *big.Int) *Point {
-	return Multi(G, secKey)
-}
-
+```go
 func (ecc *MyECC) Sign(msg []byte, secKey *big.Int) (*Signature, error) {
 	k, _ := newRand()
 	R := Multi(G, k)
@@ -71,45 +25,15 @@ func (ecc *MyECC) VerifySignature(msg []byte, signature *Signature, pubkey *Poin
 	R := Add(Multi(G, u), Multi(pubkey, v))
 	return R.X.Cmp(signature.r) == 0
 }
+```
 
-func main() {
-	seckey, err := NewPrivateKey()
-	if err != nil {
-		fmt.Println("error!")
-	}
-	pubkey := GeneratePublicKey(seckey)
+这一部分未遇到明显问题。
 
-	ecc := MyECC{}
-	msg := []byte("test1")
-	msg2 := []byte("test2")
+## 附加内容
 
-	sign, err := ecc.Sign(msg, seckey)
-	if err != nil {
-		fmt.Printf("err %v\n", err)
-		return
-	}
+我参考[此伪代码](https://zhuanlan.zhihu.com/p/94619052)，实现了如下函数`mysha256()`。
 
-	fmt.Printf("verify %v\n", ecc.VerifySignature(msg, sign, pubkey))
-	fmt.Printf("verify %v\n", ecc.VerifySignature(msg2, sign, pubkey))
-
-	fmt.Printf("libsha256 %v\n", sha256.Sum256(msg))
-	fmt.Printf("mysha256 %v\n", mysha256(msg))
-	fmt.Printf("libsha256 equals mysha256: %v\n", sha256.Sum256(msg) == mysha256(msg))
-}
-
-const (
-	// size of the SHA256 hash in bytes
-	sha256Size = 32
-
-	// size of a SHA256 chunk in bytes
-	sha256ChunkSize = 64
-)
-
-// rotate right function
-func rotr(x uint32, n uint32) uint32 {
-	return (x >> n) | (x << (32 - n))
-}
-
+```go
 // SHA256 hash function
 func mysha256(data []byte) [sha256Size]byte {
 	// initialization constants
@@ -125,12 +49,6 @@ func mysha256(data []byte) [sha256Size]byte {
 	}
 	//bitlen := uint64(len(data)) * 8
 	////padlen := (sha256ChunkSize - ((len(data) + 1) % sha256ChunkSize)) % sha256ChunkSize
-	//var padlen int
-	//if (len(data)+1)%sha256ChunkSize < 56 {
-	//	padlen = 1 + sha256ChunkSize - ((len(data) + 1) % sha256ChunkSize)
-	//} else {
-	//	padlen = 1 + 2*sha256ChunkSize - ((len(data) + 1) % sha256ChunkSize)
-	//}
 	//pad := make([]byte, padlen+8)
 	//pad[0] = 0x80
 	//for i := 1; i < padlen; i++ {
@@ -224,3 +142,22 @@ var k [64]uint32 = [64]uint32{
 	0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
 	0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 }
+```
+
+并采用
+
+```go
+	fmt.Printf("libsha256 %v\n", sha256.Sum256(msg))
+	fmt.Printf("mysha256 %v\n", mysha256(msg))
+	fmt.Print("libsha256 equals mysha256: %v\n", sha256.Sum256(msg) == mysha256(msg))
+```
+
+来验证我编写的函数与库函数输出是否相同。得到如下运行结果：
+
+```bash
+libsha256 [27 79 14 152 81 151 25 152 231 50 7 133 68 201 107 54 195 208 28 237 247 202 163 50 53 157 111 29 131 86 112 20]
+mysha256 [27 79 14 152 81 151 25 152 231 50 7 133 68 201 107 54 195 208 28 237 247 202 163 50 53 157 111 29 131 86 112 20]
+libsha256 equals mysha256: true
+```
+
+验证了我编写的函数的正确性。
