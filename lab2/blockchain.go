@@ -92,7 +92,7 @@ func (bc *Blockchain) Iterator() *BlockchainIterator {
 	return bci
 }
 
-// Next returns next block starting from the tip
+// Next returns block starting from the tip
 func (i *BlockchainIterator) Next() *Block {
 	var block *Block
 

@@ -19,7 +19,7 @@
 
 因为我们在实验中使用了区块链，对应区块链的结构
 
-```
+```go
 type Blockchain struct {
 	tip []byte
 	db  *bolt.DB
@@ -34,7 +34,7 @@ type Blockchain struct {
 
 本实验中，我们定义了一个简化的区块结构，其包括区块头和区块体。其中块头用于唯一标识区块，包含版本号、上一个区块哈希值、当前区块交易哈希值、Merkle根、时间戳、难度值和Nonce随机数等信息。区块体则存储具体的数据内容。
 
-```
+```go
 type Block struct {
 	Header *BlkHeader
 	Body   *BlkBody
@@ -88,7 +88,7 @@ UTXO是Unspent Transaction Outputs的缩写，中文翻译是没有花掉的交�
 
 在UTXO中，交易的转账方需要通过签名来证明自己是UTXO的合法使用者，并且通过输出脚本来限制收款方是谁。在比特币中，通过执行`Script`脚本来限制交易的接收方和验证方。在一笔UTXO的交易中，**每个输入都指向之前一些输出，每个输出中存储了具体的交易金额数量。**在UTXO中一个显著的特点就是单个输出是不可分的，如果只需要部分输出，可以生成一笔UTXO交易，把金额分为两个不同的部分。
 
-```
+```go
 type Transaction struct {
 	ID   []byte
 	Vin  []TXInput
@@ -132,7 +132,7 @@ P2PKH是 "Pay To Public Key Hash"的缩写，指的是向公钥的哈希支付�
 
 P2PKH对应的计算脚本如下：
 
-```
+```go
 <signature> <pubKey> OP_DUP OP_HASH160 <pubKeyHash> OP_EQUALVERIFY OP_CHECKSIG
 ```
 
@@ -143,7 +143,7 @@ P2PKH对应的计算脚本如下：
 
 ### 目录结构
 
-```
+```bash
 
 	
 ├── go.mod //go模块管理
@@ -162,7 +162,7 @@ P2PKH对应的计算脚本如下：
 
 ### Merkle树部分
 
-```
+```go
 func NewMerkleTree(data [][]byte) *MerkleTree //生成Merkle树
 func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode // 生成Merkle树节点
 func (t *MerkleTree) SPVproof(index int) ([][]byte, error) //提供SPV path
@@ -171,19 +171,19 @@ func (t *MerkleTree) VerifyProof(index int, path [][]byte) (bool, error) //验�
 
 ### Transaction部分
 
-```
+```go
 func (t *Transaction) IsCoinBase() bool //coinbase交易判断
 ```
 
 ### Wallet部分
 
-```
+```go
 func (w *Wallet) GetAddress() []byte //获取公钥对应的地址
 ```
 
 ### TXOutput部分
 
-```
+```go
 func (out *TXOutput) Lock(address []byte)   //设置锁定脚本PubkeyHash部分
 ```
 

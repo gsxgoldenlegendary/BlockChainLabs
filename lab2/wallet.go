@@ -54,6 +54,7 @@ func HashPublicKey(pubKey []byte) []byte {
 	return Hasher.Sum(nil)
 }
 
+// TODO
 func (w *Wallet) GetAddress() []byte {
 	return nil
 }

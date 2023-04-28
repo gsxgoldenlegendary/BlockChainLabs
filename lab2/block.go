@@ -91,8 +91,8 @@ func NewBlock(transactions Transactions, prevBlockHash []byte) *Block {
 }
 
 // NewGenesisBlock creates and returns genesis Block
-func NewGenesisBlock(coionbase *Transaction) *Block {
-	return NewBlock([]*Transaction{coionbase}, []byte{})
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
 // DeserializeBlock deserializes a block

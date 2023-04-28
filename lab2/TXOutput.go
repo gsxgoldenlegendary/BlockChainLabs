@@ -11,6 +11,7 @@ type TXOutput struct {
 	PubKeyHash []byte
 }
 
+// TODO
 func (out *TXOutput) Lock(address []byte) {
 }
 
