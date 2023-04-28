@@ -86,7 +86,6 @@ func TestSPVproof(t *testing.T) {
 		path, _ := mTree.SPVproof(i)
 		res, _ := mTree.VerifyProof(i, path)
 		assert.Equal(t, res, true, "Merkle tree root hash is incorrect")
-
 	}
 
 }

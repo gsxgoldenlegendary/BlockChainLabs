@@ -1,7 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"crypto/sha256"
+	"fmt"
 	"math"
 )
 
@@ -19,7 +21,6 @@ type MerkleNode struct {
 }
 
 // NewMerkleTree creates a new Merkle tree from a sequence of data
-// TODO
 func NewMerkleTree(data [][]byte) *MerkleTree {
 	if len(data)%2 == 1 {
 		data = append(data, data[len(data)-1])
@@ -61,14 +62,54 @@ func NewMerkleNode(left, right *MerkleNode, data []byte) *MerkleNode {
 	return node
 }
 
-// TODO
+// SPVproof returns the sparse Merkle proof for a given leaf node at the specified index.
 func (t *MerkleTree) SPVproof(index int) ([][]byte, error) {
+	if index < 0 || index >= len(t.Leaf) {
+		return nil, fmt.Errorf("invalid index: %d", index)
+	}
 
-	return nil, nil
+	proof := make([][]byte, 0)
+	currentNode := t.RootNode
+	level := 1 << (int(math.Log2(float64(len(t.Leaf)))) - 1)
+	// Traverse the tree from the root to the leaf node, keeping track of the sibling nodes
+	for currentNode.Left != nil && currentNode.Right != nil {
+		if index/level == 0 {
+			proof = append(proof, currentNode.Right.Data)
+			currentNode = currentNode.Left
+		} else {
+			proof = append(proof, currentNode.Left.Data)
+			currentNode = currentNode.Right
+		}
+		level = level >> 1
+	}
+
+	return proof, nil
 }
 
-// TODO
 func (t *MerkleTree) VerifyProof(index int, path [][]byte) (bool, error) {
 
-	return true, nil
+	if index < 0 || index >= len(t.Leaf) {
+		return false, fmt.Errorf("invalid index: %d", index)
+	}
+	var hash [32]byte
+	leaf := sha256.Sum256(t.Leaf[index])
+	if index%2 == 0 {
+		hash = sha256.Sum256(append(leaf[:], path[len(path)-1]...))
+	} else {
+		hash = sha256.Sum256(append(path[len(path)-1], leaf[:]...))
+	}
+	index = index / 2
+	for i := len(path) - 2; i >= 0; i-- {
+		if index%2 == 0 {
+			hash = sha256.Sum256(append(hash[:], path[i]...))
+		} else {
+			hash = sha256.Sum256(append(path[i], hash[:]...))
+		}
+		index = index / 2
+	}
+	if bytes.Equal(hash[:], t.RootNode.Data) {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }
