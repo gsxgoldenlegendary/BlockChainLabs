@@ -29,8 +29,8 @@ func TestGetAddress(t *testing.T) {
 
 	address2, _ := hex.DecodeString("637361657a6e54346b363944414e617642466f46664767477673574872746f5669")
 	assert.Equal(t,
-		hex.EncodeToString(wallet2.GetAddress()),
 		hex.EncodeToString(address2),
+		hex.EncodeToString(wallet2.GetAddress()),
 		"Getting wallet address fails!")
 
 }

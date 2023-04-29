@@ -8,11 +8,11 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
+	"github.com/btcsuite/btcutil/base58"
+	"golang.org/x/crypto/ripemd160"
 	"io/ioutil"
 	"log"
 	"os"
-
-	"golang.org/x/crypto/ripemd160"
 )
 
 const version = byte(0x01)
@@ -54,9 +54,19 @@ func HashPublicKey(pubKey []byte) []byte {
 	return Hasher.Sum(nil)
 }
 
-// TODO
 func (w *Wallet) GetAddress() []byte {
-	return nil
+	pubKeyHash := HashPublicKey(w.PublicKey)
+	var pubKeyHashAndVersion []byte
+	pubKeyHashAndVersion = append(pubKeyHashAndVersion, version)
+	pubKeyHashAndVersion = append(pubKeyHashAndVersion, pubKeyHash...)
+	pubKeyHashHash := sha256.Sum256(pubKeyHashAndVersion)
+	pubKeyHashHashHash := sha256.Sum256(pubKeyHashHash[:])
+	checkSum := pubKeyHashHashHash[0:checkSumlen]
+	var address []byte
+	address = append(address, version)
+	address = append(address, pubKeyHash...)
+	address = append(address, checkSum...)
+	return []byte(base58.Encode(address))
 }
 
 // NewWallets creates Wallets and fills it from a file if it exists

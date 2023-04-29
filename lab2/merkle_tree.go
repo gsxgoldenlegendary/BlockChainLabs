@@ -82,7 +82,6 @@ func (t *MerkleTree) SPVproof(index int) ([][]byte, error) {
 		}
 		level = level >> 1
 	}
-
 	return proof, nil
 }
 
