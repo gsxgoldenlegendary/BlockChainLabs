@@ -37,6 +37,7 @@ func NewUTXOTransaction(from, to []byte, amount int, UTXOSet *UTXOSet) *Transact
 
 // TODO
 func (t *Transaction) IsCoinBase() bool {
+
 	return true
 }
 

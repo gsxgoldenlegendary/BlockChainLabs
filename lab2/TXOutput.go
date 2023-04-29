@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/gob"
+	"github.com/btcsuite/btcutil/base58"
 	"log"
 )
 
@@ -11,8 +12,9 @@ type TXOutput struct {
 	PubKeyHash []byte
 }
 
-// TODO
 func (out *TXOutput) Lock(address []byte) {
+	VersionPubkeyhashChecksum := base58.Encode(address)
+	out.PubKeyHash = []byte(VersionPubkeyhashChecksum[1 : len(VersionPubkeyhashChecksum)-4])
 }
 
 func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
