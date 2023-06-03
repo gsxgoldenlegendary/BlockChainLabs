@@ -19,15 +19,12 @@ func (u UTXOSet) FindUnspentOutputs(pubkeyHash []byte, amount int) (int, map[str
 	unspentOutputs := make(map[string][]int)
 	accumulated := 0
 	db := u.Blockchain.db
-
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(utxoBucket))
 		c := b.Cursor()
-
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			txID := hex.EncodeToString(k)
 			outs := DeserializeOutputs(v)
-
 			for outIdx, out := range outs.Outputs {
 				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {
 					accumulated += out.Value
@@ -35,13 +32,11 @@ func (u UTXOSet) FindUnspentOutputs(pubkeyHash []byte, amount int) (int, map[str
 				}
 			}
 		}
-
 		return nil
 	})
 	if err != nil {
 		log.Panic(err)
 	}
-
 	return accumulated, unspentOutputs
 }
 

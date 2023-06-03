@@ -30,12 +30,10 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 }
 
 // Run performs a proof-of-work
-// implement
 func (pow *ProofOfWork) Run() (int64, []byte) {
 	var hashInt big.Int
 	var hash [32]byte
 	nonce := int64(0)
-
 	for nonce < int64(maxNonce) {
 		data := bytes.Join(
 			[][]byte{
@@ -50,19 +48,16 @@ func (pow *ProofOfWork) Run() (int64, []byte) {
 		)
 		hash = sha256.Sum256(data)
 		hashInt.SetBytes(hash[:])
-
 		if hashInt.Cmp(pow.target) == -1 {
 			break
 		} else {
 			nonce++
 		}
 	}
-
 	return nonce, hash[:]
 }
 
 // Validate validates block's PoW
-// implement
 func (pow *ProofOfWork) Validate() bool {
 	data := bytes.Join(
 		[][]byte{

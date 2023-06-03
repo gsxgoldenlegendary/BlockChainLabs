@@ -51,7 +51,6 @@ func NewUTXOTransaction(from, to []byte, amount int, UTXOSet *UTXOSet) *Transact
 		if err != nil {
 			log.Panic(err)
 		}
-
 		for _, out := range outs {
 			input := TXInput{txID, out, nil, Wallet.PublicKey}
 			inputs = append(inputs, input)
@@ -69,7 +68,6 @@ func NewUTXOTransaction(from, to []byte, amount int, UTXOSet *UTXOSet) *Transact
 	// Sign the transaction
 	tx.SetID()
 	UTXOSet.Blockchain.SignTransaction(&tx, Wallet.PrivateKey)
-
 	return &tx
 }
 

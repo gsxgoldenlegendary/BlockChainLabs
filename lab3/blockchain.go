@@ -83,56 +83,43 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 }
 
 // AddBlock saves provided data as a block in the blockchain
-// implement
 // MineBlock mines a new block with the provided transactions
 func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 	var lastHash [32]byte
-
 	for _, tx := range transactions {
 		if bc.VerifyTransaction(tx) != true {
 			log.Panic("ERROR: Invalid transaction")
 		}
 	}
-
 	err := bc.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		copy(lastHash[:], b.Get([]byte("l")))
 
 		return nil
 	})
-
 	if err != nil {
 		log.Panic(err)
 	}
-
 	newBlock := NewBlock(transactions, lastHash)
 	pow := NewProofOfWork(newBlock)
-
 	nonce, _ := pow.Run()
 	newBlock.Header.Nonce = nonce
-
 	err = bc.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
-
 		err := b.Put(newBlock.CalCulHash(), newBlock.Serialize())
 		if err != nil {
 			log.Panic(err)
 		}
-
 		err = b.Put([]byte("l"), newBlock.CalCulHash())
 		if err != nil {
 			log.Panic(err)
 		}
-
 		bc.tip = newBlock.CalCulHash()
-
 		return nil
 	})
-
 	if err != nil {
 		log.Panic(err)
 	}
-
 	return newBlock
 }
 
@@ -251,15 +238,11 @@ func NewBlockchain() *Blockchain {
 func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 	UTXO := make(map[string]TXOutputs)
 	spentTXOs := make(map[string][]int)
-
 	bci := bc.Iterator()
-
 	for {
 		block := bci.Next()
-
 		for _, tx := range block.GetTransactions() {
 			txID := hex.EncodeToString(tx.ID)
-
 			// Handle outputs
 			outputs := TXOutputs{}
 			for outIdx, out := range tx.Vout {
@@ -269,14 +252,12 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 						continue
 					}
 				}
-
 				// If output is not spent, add it to UTXO set
 				outputs.Outputs = append(outputs.Outputs, out)
 			}
 			if len(outputs.Outputs) > 0 {
 				UTXO[txID] = outputs
 			}
-
 			// Handle inputs
 			if tx.IsCoinBase() == false {
 				for _, vin := range tx.Vin {
@@ -285,12 +266,10 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 				}
 			}
 		}
-
 		if block.GetPrevhash() == [32]byte{} {
 			break
 		}
 	}
-
 	return UTXO
 }
 
