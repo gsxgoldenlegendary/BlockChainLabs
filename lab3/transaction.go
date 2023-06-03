@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/gob"
 	"encoding/hex"
+	"github.com/btcsuite/btcutil/base58"
 	"log"
 )
 
@@ -33,7 +34,43 @@ func NewCoinbaseTx(toAddr []byte, data []byte) *Transaction {
 
 // NewUTXOTransaction creates a new transaction
 func NewUTXOTransaction(from, to []byte, amount int, UTXOSet *UTXOSet) *Transaction {
-	return nil
+	var inputs []TXInput
+	var outputs []TXOutput
+	Wallets, _ := NewWallets()
+	Wallet := Wallets.GetWallet(from)
+	pubkeyHash := base58.Decode(string(from))
+	pubkeyHash = pubkeyHash[1 : len(pubkeyHash)-4]
+	// Find unspent transaction outputs belonging to the sender's addresses
+	acc, validOutputs := UTXOSet.FindUnspentOutputs(pubkeyHash, amount)
+	if acc < amount {
+		log.Panic("ERROR: Not enough funds")
+	}
+	// Create inputs from the valid outputs
+	for txid, outs := range validOutputs {
+		txID, err := hex.DecodeString(txid)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, out := range outs {
+			input := TXInput{txID, out, nil, Wallet.PublicKey}
+			inputs = append(inputs, input)
+		}
+	}
+	pubkeyHash = base58.Decode(string(to))
+	pubkeyHash = pubkeyHash[1 : len(pubkeyHash)-4]
+	// Create outputs for the recipient's address and possibly for the sender's change address
+	outputs = append(outputs, TXOutput{amount, pubkeyHash})
+	if acc > amount {
+		outputs = append(outputs, TXOutput{acc - amount, pubkeyHash})
+	}
+	// Create transaction
+	tx := Transaction{nil, inputs, outputs}
+	// Sign the transaction
+	tx.SetID()
+	UTXOSet.Blockchain.SignTransaction(&tx, Wallet.PrivateKey)
+
+	return &tx
 }
 
 func (t *Transaction) IsCoinBase() bool {
